@@ -96,6 +96,21 @@ r2 = r2_score(y_test, y_pred)
 
 explained_var = explained_variance_score(y_test, y_pred)
 ```
+OUTPUT:
+
+MAPE, mean absolute percentage error: 0.0033333333333333
+
+MSE, Mean squared error:              0.0033333333333333
+
+RMSE, Root mean squared error:        0.0577350269189626
+
+MAE, Mean absolute error:             0.0033333333333333
+
+R2, R-squared:                        0.9825286820802516
+
+Explained variance:                   0.9825869198066508
+
+
 ### Print the evaluation metrics
 ```
 print("MAPE, mean absolute percentage error:", mape)
