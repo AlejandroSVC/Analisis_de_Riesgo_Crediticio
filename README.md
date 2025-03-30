@@ -1,7 +1,7 @@
 # Estimating client credit risk
 ## Using xgBoost Machine Learning Classification with Python
 
-![Credit_risk](docs/assets/images/Credit_risk.jpg)
+![Credit_risk](docs/assets/images/Banner_credit_risk.jpg)
 
 ### XGBOOST Machine Learning model
 
