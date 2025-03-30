@@ -50,7 +50,7 @@ from matplotlib import pyplot
 ```
 sns.heatmap(df.corr(), cmap='coolwarm')
 ```
-![Correls](docs/assets/images/Correlation_matrix.png)
+![Correls](docs/assets/images/1_Correlation_matrix.png)
 
 ### Dataset: extract features and target
 ```
@@ -123,7 +123,7 @@ plt.title('Feature Importance')
 
 plt.show()
 ```
-![Features](docs/assets/images/Features_importance.png)
+![Features](docs/assets/images/2_Feature_importance.png)
 
 ### Plot actual vs predicted values, and actual vs predicted residuals
 ```
@@ -155,7 +155,7 @@ PredictionErrorDisplay.from_estimator(reg, X, y, ax=axes[1], kind="residual_vs_p
 
 plt.show()
 ```
-![Plots](docs/assets/images/Predicted_plots.png)
+![Plots](docs/assets/images/3_Predicted_values.png)
 
 ### Permutation importance
 
@@ -193,4 +193,4 @@ plt.tight_layout()
 
 plt.show()
 ```
-![Permutation](docs/assets/images/Permutation_feature_importance.png)
+![Permutation](docs/assets/images/4_Permutation_Feature_importance.png)
