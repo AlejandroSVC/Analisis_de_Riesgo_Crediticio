@@ -141,11 +141,18 @@ plt.title('XGBoost Feature Importance')
 plt.tight_layout()
 plt.show()
 ```
+![1. Feature importance](docs/assets/images/1_Feature_importance.png)
+
 ### 7. Optimization history plot
 ```
 optuna.visualization.plot_optimization_history(study).show()
 ```
+![2. Optimization History Plot](docs/assets/images/2_Optimization_History_Plot.png)
+
 ### 8. Parameter importance plot
 ```
 optuna.visualization.plot_param_importances(study).show()
 ```
+![3. Hyperparameter Importances](docs/assets/images/3_Hyperparameter_Importances.png)
+
+
