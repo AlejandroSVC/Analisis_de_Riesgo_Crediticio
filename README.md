@@ -112,11 +112,17 @@ print(f"Explained variance:", round(explained_var,5))
 OUTPUT
 
 Evaluation Metrics:
+
 MAPE, mean absolute percentage error: 45035996273704.97
+
 MSE, Mean squared error: 0.025
+
 RMSE, Root mean squared error: 0.15811
+
 MAE, Mean absolute error: 0.025
+
 R2, R-squared: 0.86294
+
 Explained variance: 0.86308
 
 ### PLOTS
@@ -142,5 +148,4 @@ optuna.visualization.plot_optimization_history(study).show()
 ### 8. Parameter importance plot
 ```
 optuna.visualization.plot_param_importances(study).show()
-```
 ```
