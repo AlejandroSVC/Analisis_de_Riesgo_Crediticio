@@ -35,8 +35,8 @@ import seaborn as sns
 ```
 ### 1. Separate features and target
 ```
-X = data.drop('RiskScore', axis=1)
-y = data['RiskScore']
+X = data.drop('LoanApproved', axis=1)
+y = data['LoanApproved']
 ```
 ### Split data into train and test sets
 ```
@@ -109,6 +109,16 @@ print(f"MAE, Mean absolute error:", round(mae,5))
 print(f"R2, R-squared:", round(r2,5))
 print(f"Explained variance:", round(explained_var,5))
 ```
+OUTPUT
+
+Evaluation Metrics:
+MAPE, mean absolute percentage error: 45035996273704.97
+MSE, Mean squared error: 0.025
+RMSE, Root mean squared error: 0.15811
+MAE, Mean absolute error: 0.025
+R2, R-squared: 0.86294
+Explained variance: 0.86308
+
 ### PLOTS
 
 ### 6. Feature importance
