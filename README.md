@@ -24,188 +24,113 @@ df.info()
 ```
 ### Import libraries
 ```
-import xgboost as xgb
-
 import numpy as np
-
-import seaborn as sns
-
-from numpy import asarray
-
-from numpy import mean
-
-from numpy import std
-
+import pandas as pd
+import xgboost as xgb
+import optuna
 from sklearn.datasets import make_regression
-
-from xgboost import XGBClassifier
-
-from sklearn.model_selection import cross_val_score
-
-from sklearn.model_selection import RepeatedKFold
-
-from matplotlib import pyplot
-```
-### Display correlation matrix
-```
-sns.heatmap(df.corr(), cmap='coolwarm')
-```
-![Correls](docs/assets/images/1_Correlation_matrix.png)
-
-### Dataset: extract features and target
-```
-X = df.drop('LoanApproved',axis=1)
-
-y = df['LoanApproved']
-```
-### Split the data into Train and Test datasets
-```
 from sklearn.model_selection import train_test_split
-
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.30,
-                                                          shuffle=False,
-                                                          random_state = 1234)
+import matplotlib.pyplot as plt
+import seaborn as sns
 ```
-### Initialize the XGBoost classifier
+### 1. Separate features and target
 ```
-model = XGBClassifier(n_estimators=100, random_state=42)
+X = data.drop('RiskScore', axis=1)
+y = data['RiskScore']
 ```
-### Fit the xgBoost model to the data
+### Split data into train and test sets
 ```
-model.fit(X_train, y_train)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 ```
-### Make predictions on the test set
-```
-y_pred = model.predict(X_test)
-```
-### Calculate evaluation metrics
+### 2. Define objective function for Optuna
 ```
 from sklearn.metrics import root_mean_squared_error
 
+def objective(trial):
+    params = {
+        'objective': 'reg:squarederror',
+        'eval_metric': 'rmse',
+        'booster': trial.suggest_categorical('booster', ['gbtree', 'gblinear', 'dart']),
+        'lambda': trial.suggest_float('lambda', 1e-8, 1.0, log=True),
+        'alpha': trial.suggest_float('alpha', 1e-8, 1.0, log=True),
+        'max_depth': trial.suggest_int('max_depth', 1, 9),
+        'eta': trial.suggest_float('eta', 1e-8, 1.0, log=True),
+        'gamma': trial.suggest_float('gamma', 1e-8, 1.0, log=True),
+        'grow_policy': trial.suggest_categorical('grow_policy', ['depthwise', 'lossguide']),
+        'n_estimators': trial.suggest_int('n_estimators', 50, 500),
+        'subsample': trial.suggest_float('subsample', 0.1, 1.0),
+        'colsample_bytree': trial.suggest_float('colsample_bytree', 0.1, 1.0),
+        'min_child_weight': trial.suggest_int('min_child_weight', 1, 10),
+    }
+    
+    model = xgb.XGBClassifier(**params, random_state=42)
+    model.fit(X_train, y_train, eval_set=[(X_test, y_test)], verbose=False)
+    preds = model.predict(X_test)
+    rmse = root_mean_squared_error(y_test, preds)
+    return rmse
+```
+### 3. Run Optuna optimization
+```
+study = optuna.create_study(direction='minimize')
+study.optimize(objective, n_trials=50, show_progress_bar=True)
+```
+### 4. Train final model with best hyperparameters
+```
+best_params = study.best_params
+best_params['objective'] = 'reg:squarederror'
+best_params['random_state'] = 42
+
+final_model = xgb.XGBClassifier(**best_params)
+final_model.fit(X_train, y_train, eval_set=[(X_test, y_test)], verbose=True)
+```
+### 5. Evaluate the model
+```
+y_pred = final_model.predict(X_test)
+
+print("\nEvaluation Metrics:")
+```
+### Calculate evaluation metrics
+```
 from sklearn.metrics import mean_absolute_percentage_error, mean_squared_error, r2_score, explained_variance_score, mean_absolute_error
 
 mape = mean_absolute_percentage_error(y_test, y_pred)
-
 mse = mean_squared_error(y_test, y_pred)
-
 rmse = root_mean_squared_error(y_test, y_pred)
-
 mae = mean_absolute_error(y_test, y_pred)
-
 r2 = r2_score(y_test, y_pred)
-
 explained_var = explained_variance_score(y_test, y_pred)
 ```
-OUTPUT:
-
-MAPE, mean absolute percentage error: 0.0033333333333333
-
-MSE, Mean squared error:              0.0033333333333333
-
-RMSE, Root mean squared error:        0.0577350269189626
-
-MAE, Mean absolute error:             0.0033333333333333
-
-R2, R-squared:                        0.9825286820802516
-
-Explained variance:                   0.9825869198066508
-
-
 ### Print the evaluation metrics
 ```
-print("MAPE, mean absolute percentage error:", mape)
-print("MSE, Mean squared error:", mse)
-print("RMSE, Root mean squared error:", rmse)
-print("MAE, Mean absolute error:", mae)
-print("R2, R-squared:", r2)
-print("Explained variance:", explained_var)
+print(f"MAPE, mean absolute percentage error:", round(mape,5))
+print(f"MSE, Mean squared error:", round(mse,5))
+print(f"RMSE, Root mean squared error:", round(rmse,5))
+print(f"MAE, Mean absolute error:", round(mae,5))
+print(f"R2, R-squared:", round(r2,5))
+print(f"Explained variance:", round(explained_var,5))
 ```
-### Feature importance
+### PLOTS
+
+### 6. Feature importance
 ```
-importance = model.feature_importances_
-print(importance)
-```
-### Plot feature importance
-```
-import matplotlib.pyplot as plt
-
-fig, ax = plt.subplots(figsize=(10, 8))
-
-xgb.plot_importance(model, ax=ax, importance_type='gain', grid=False,
-                    show_values=True, values_format='{v:.2f}')
-
-plt.title('Feature Importance')
-
-plt.show()
-```
-![Features](docs/assets/images/2_Feature_importance.png)
-
-### Plot actual vs predicted values, and actual vs predicted residuals
-```
-import matplotlib.pyplot as plt
-
-from sklearn.metrics import PredictionErrorDisplay
-
-from sklearn.pipeline import make_pipeline
-
-from sklearn.svm import SVR
-
-from sklearn.preprocessing import StandardScaler
-
-rng = np.random.default_rng(42)
-
-X = rng.random(size=(200, 2)) * 10
-
-y = X[:, 0]**2 + 5 * X[:, 1] + 10 + rng.normal(loc=0.0, scale=0.1, size=(200,))
-
-reg = make_pipeline(StandardScaler(), SVR(kernel='linear', C=10))
-
-reg.fit(X, y)
-
-fig, axes = plt.subplots(1, 2, figsize=(8, 4))
-
-PredictionErrorDisplay.from_estimator(reg, X, y, ax=axes[0], kind="actual_vs_predicted")
-
-PredictionErrorDisplay.from_estimator(reg, X, y, ax=axes[1], kind="residual_vs_predicted")
-
-plt.show()
-```
-![Plots](docs/assets/images/3_Predicted_values.png)
-
-### Permutation importance
-
-Permutation feature importance is a powerful technique for evaluating the
-importance of features in a machine learning model.
-It works by randomly shuffling the values of each feature and measuring
-the decrease in the model’s performance.
-This provides a more reliable estimate of feature importance compared to
-built-in importance measures, as it takes into account the interaction
-between features.
-```
-from sklearn.inspection import permutation_importance
-```
-## Calculate permutation feature importance
-```
-perm_importance = permutation_importance(model, X_test, y_test, n_repeats=10, random_state=42)
-```
-## Plot permutation feature importance
-```
-sorted_idx = perm_importance.importances_mean.argsort()
+feature_importance = final_model.feature_importances_
+sorted_idx = np.argsort(feature_importance)[::-1]
 
 plt.figure(figsize=(10, 6))
-
-plt.barh(range(len(sorted_idx)), perm_importance.importances_mean[sorted_idx], align='center')
-
-plt.yticks(range(len(sorted_idx)), [f'feature_{i}' for i in sorted_idx])
-
-plt.xlabel('Permutation Feature Importance')
-
-plt.ylabel('Feature')
-
-plt.title('Permutation Feature Importance (XGBoost)')
-
+plt.bar(range(X.shape[1]), feature_importance[sorted_idx], align='center')
+plt.xticks(range(X.shape[1]), sorted_idx)
+plt.xlabel('Feature index')
+plt.ylabel('Feature importance')
+plt.title('XGBoost Feature Importance')
 plt.tight_layout()
-
 plt.show()
 ```
-![Permutation](docs/assets/images/4_Permutation_Feature_importance.png)
+### 7. Optimization history plot
+```
+optuna.visualization.plot_optimization_history(study).show()
+```
+### 8. Parameter importance plot
+```
+optuna.visualization.plot_param_importances(study).show()
+```
+```
