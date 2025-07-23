@@ -1,4 +1,4 @@
-# Estimación del riesgo crediticio del cliente
+# Estimación del Nivel de Riesgo Crediticio del Cliente
 ## Uso de la clasificación de aprendizaje automático de xgBoost con Python
 
 ![Credit_risk](docs/assets/images/Banner_credit_risk.jpg)
@@ -9,7 +9,7 @@ XGBoost significa "Impulso de Gradiente Extremo". Se centra en la velocidad comp
 
 ### CÓDIGO PYTHON:
 
-### Establecer directorio de trabajo y cargar datos
+### 1. Establecer directorio de trabajo y cargar datos
 ```
 import os
 
@@ -21,7 +21,7 @@ df = pd.read_csv('data.csv')
 
 df.info()
 ```
-### Importar bibliotecas
+### 2. Importar bibliotecas
 ```
 import numpy as np
 import pandas as pd
@@ -32,16 +32,16 @@ from sklearn.model_selection import train_test_split
 import matplotlib.pyplot as plt
 import seaborn as sns
 ```
-### 1. Separar las variables dependiente (target) e independientes (features)
+### 3. Separar las variables dependiente (target) e independientes (features)
 ```
 X = data.drop('LoanApproved', axis=1)
 y = data['LoanApproved']
 ```
-### Dividir los datos en conjuntos de entrenamiento y prueba
+### 4. Dividir los datos en conjuntos de entrenamiento y prueba
 ```
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 ```
-### 2. Definir la función objetivo para Optuna
+### 5. Definir la función objetivo para Optuna
 ```
 from sklearn.metrics import root_mean_squared_error
 
@@ -68,12 +68,12 @@ def objective(trial):
     rmse = root_mean_squared_error(y_test, preds)
     return rmse
 ```
-### 3. Llevar a cabo la optimización Optuna
+### 6. Llevar a cabo la optimización Optuna
 ```
 study = optuna.create_study(direction='minimize')
 study.optimize(objective, n_trials=50, show_progress_bar=True)
 ```
-### 4. Entrenar el modelo final con los mejores hiperparámetros
+### 7. Entrenar el modelo final con los mejores hiperparámetros
 ```
 best_params = study.best_params
 best_params['objective'] = 'reg:squarederror'
@@ -82,13 +82,13 @@ best_params['random_state'] = 42
 final_model = xgb.XGBClassifier(**best_params)
 final_model.fit(X_train, y_train, eval_set=[(X_test, y_test)], verbose=True)
 ```
-### 5. Evaluar el modelo
+### 8. Evaluar el modelo
 ```
 y_pred = final_model.predict(X_test)
 
 print("\nEvaluation Metrics:")
 ```
-### Calcular las métricas de evaluación
+### 9. Calcular las métricas de evaluación
 ```
 from sklearn.metrics import mean_absolute_percentage_error, mean_squared_error, r2_score, explained_variance_score, mean_absolute_error
 
@@ -99,7 +99,7 @@ mae = mean_absolute_error(y_test, y_pred)
 r2 = r2_score(y_test, y_pred)
 explained_var = explained_variance_score(y_test, y_pred)
 ```
-### Mostrar las métricas de evaluación
+### 10. Mostrar las métricas de evaluación
 ```
 print(f"MAPE, mean absolute percentage error:", round(mape,5))
 print(f"MSE, Mean squared error:", round(mse,5))
@@ -108,7 +108,7 @@ print(f"MAE, Mean absolute error:", round(mae,5))
 print(f"R2, R-squared:", round(r2,5))
 print(f"Explained variance:", round(explained_var,5))
 ```
-### RESULTADO
+## RESULTADOS
 
 Evaluation Metrics:
 
@@ -124,9 +124,9 @@ R2, R-squared: 0.86294
 
 Explained variance: 0.86308
 
-### gráficos
+## GRÁFICOS
 
-### 6. Importancia de las variables predictoras
+### Importancia de las variables predictoras
 ```
 feature_importance = final_model.feature_importances_
 sorted_idx = np.argsort(feature_importance)[::-1]
@@ -142,13 +142,13 @@ plt.show()
 ```
 ![1. Feature importance](docs/assets/images/1_Feature_importance.png)
 
-### 7. Gráfico del historial del proceso de pptimización
+### Gráfico del historial del proceso de pptimización
 ```
 optuna.visualization.plot_optimization_history(study).show()
 ```
 ![2. Optimization History Plot](docs/assets/images/2_Optimization_History_Plot.png)
 
-### 8. Gráfico de la importancia de las variables predictoras
+### Gráfico de la importancia de las variables predictoras
 ```
 optuna.visualization.plot_param_importances(study).show()
 ```
